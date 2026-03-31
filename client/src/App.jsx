@@ -1,8 +1,10 @@
+import { Outlet } from 'react-router-dom';
+
 export default function App() {
   return (
-    <main className="app-shell">
-      <h1>What's Cooking</h1>
-      <p>Client is ready.</p>
-    </main>
+    <>
+      <h1 className="flex justify-center text-9xl">Navbar Placeholder</h1>
+      <Outlet />
+    </>
   );
 }
