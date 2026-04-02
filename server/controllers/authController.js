@@ -1,6 +1,6 @@
 import { query } from '../config/db.js';
 import { StatusCodes } from 'http-status-codes';
-import { hashPassword, comparePasswords } from '../utils/password.js';
+import { hashPassword } from '../utils/password.js';
 import { createJWT } from '../utils/token.js';
 
 export const getUsers = async (req, res) => {
@@ -14,19 +14,25 @@ export const getUsers = async (req, res) => {
 };
 
 export const register = async (req, res) => {
-  const { name, email, password } = req.body;
-  const hashedPassword = hashPassword(password);
-  const result = await query(
-    `
-    INSERT INTO whats_cooking (name, email, password_hash)
-    VALUES ($1, $2, $3)
-    RETURNING id, name, email
-    `,
-    [name, email, hashedPassword]
-  );
+  try {
+    const { name, email, password } = req.body;
+    const hashedPassword = await hashPassword(password);
+    const result = await query(
+      `
+      INSERT INTO users (name, email, password_hash)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, email
+      `,
+      [name, email, hashedPassword]
+    );
 
-  const user = result.rows[0];
-  const token = createJWT({ userId: user.id, name: user.name });
+    const user = result.rows[0];
+    const token = createJWT({ userId: user.id, name: user.name });
 
-  res.status(StatusCodes.CREATED).json({ user, token });
+    return res.status(StatusCodes.CREATED).json({ user, token });
+  } catch (error) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error.message });
+  }
 };
