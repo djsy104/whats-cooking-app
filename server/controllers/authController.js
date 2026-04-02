@@ -15,14 +15,6 @@ export const getUsers = async (req, res) => {
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
-
-  const currentUser = await User.findOne({ email });
-
-  if (currentUser) {
-    return res
-      .status(401)
-      .json({ error: 'There is already an account with that email' });
-  }
   const hashedPassword = hashPassword(password);
   const result = await query(
     `
