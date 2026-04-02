@@ -1,4 +1,5 @@
 import { query } from '../config/db.js';
+import { StatusCodes } from 'http-status-codes';
 
 export const getUsers = async (req, res) => {
   try {
@@ -12,18 +13,6 @@ export const getUsers = async (req, res) => {
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
-
-  if (!name) {
-    return res.status(401).json({ error: 'Please provide a name' });
-  }
-
-  if (!email) {
-    return res.status(401).json({ error: 'Please provide an email' });
-  }
-
-  if (!password) {
-    return res.status(401).json({ error: 'Please provide a password' });
-  }
 
   const currentUser = await User.findOne({ email });
 
