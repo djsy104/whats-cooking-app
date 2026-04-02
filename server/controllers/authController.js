@@ -1,6 +1,6 @@
 import { query } from '../config/db.js';
 import { StatusCodes } from 'http-status-codes';
-import { hashPassword } from '../utils/password.js';
+import { hashPassword, comparePasswords } from '../utils/password.js';
 import { createJWT } from '../utils/token.js';
 
 export const getUsers = async (req, res) => {
@@ -30,6 +30,35 @@ export const register = async (req, res) => {
     const token = createJWT({ userId: user.id, name: user.name });
 
     return res.status(StatusCodes.CREATED).json({ user, token });
+  } catch (error) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error.message });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const result = await query(
+      `
+      SELECT id, name, email, password_hash
+      FROM users
+      where email = $1
+      LIMIT 1
+      `,
+      [email]
+    );
+
+    const user = result.rows[0];
+    if (!user) throw new Error('Invalid credentials!');
+
+    const isMatch = await comparePasswords(password, user.password_hash);
+    if (!isMatch) throw new Error('Incorrect password!');
+
+    const token = createJWT({ userId: user.id, name: user.name });
+    res.status(StatusCodes.OK).json({ user, token });
   } catch (error) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
