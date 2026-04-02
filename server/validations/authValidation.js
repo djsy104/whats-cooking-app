@@ -42,6 +42,6 @@ export const registerValidation = [
     .notEmpty()
     .withMessage('Password is required')
     .bail()
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters'),
+    .isLength({ min: 4 })
+    .withMessage('Password must be at least 4 characters'),
 ];
