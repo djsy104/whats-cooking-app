@@ -2,6 +2,8 @@ import './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/authRouter.js';
+import libraryRouter from './routes/libraryRouter.js';
+import { authenticateUser } from './middleware/authentication.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -31,6 +33,7 @@ app.use(
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
+app.use('/api/libraries', authenticateUser, libraryRouter);
 
 app.listen(port, () => {
   console.log(`Server listening on ${serverUrl}`);
