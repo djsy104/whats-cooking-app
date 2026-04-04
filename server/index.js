@@ -4,8 +4,9 @@ import cors from 'cors';
 import authRouter from './routes/authRouter.js';
 
 const app = express();
-const port = process.env.PORT || 3001;
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+const port = Number(process.env.PORT || 3001);
+const serverUrl = process.env.SERVER_URL || `http://localhost:${port}`;
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -32,5 +33,5 @@ app.use(express.json());
 app.use('/api/auth', authRouter);
 
 app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+  console.log(`Server listening on ${serverUrl}`);
 });

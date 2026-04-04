@@ -44,5 +44,13 @@ export default [
       globals: globals.node
     }
   },
+  {
+    files: ['client/vite.config.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.node
+    }
+  },
   eslintConfigPrettier
 ];
