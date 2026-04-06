@@ -49,7 +49,27 @@ export const getLibraries = async (req, res) => {
 };
 
 export const getSingleLibrary = async (req, res) => {
-  return res.send('Get library');
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const result = await query(
+      `
+      SELECT * from libraries
+      WHERE user_id = $1 AND id = $2
+      ORDER BY name
+      `,
+      [userId, id]
+    );
+
+    const library = result.rows[0];
+
+    return res.status(StatusCodes.CREATED).json({ library });
+  } catch (error) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error.message });
+  }
 };
 
 export const updateLibrary = async (req, res) => {
