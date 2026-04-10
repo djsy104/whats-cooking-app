@@ -40,7 +40,7 @@ export const getLibraries = async (req, res) => {
       [userId]
     );
 
-    return res.status(StatusCodes.CREATED).json({ libraries: result.rows });
+    return res.status(StatusCodes.OK).json({ libraries: result.rows });
   } catch (error) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -57,14 +57,13 @@ export const getSingleLibrary = async (req, res) => {
       `
       SELECT * from libraries
       WHERE user_id = $1 AND id = $2
-      ORDER BY name
       `,
       [userId, id]
     );
 
     const library = result.rows[0];
 
-    return res.status(StatusCodes.CREATED).json({ library });
+    return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -73,9 +72,70 @@ export const getSingleLibrary = async (req, res) => {
 };
 
 export const updateLibrary = async (req, res) => {
-  return res.send('Update library');
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    const updatedFields = [];
+    const updatedValues = [];
+
+    // TODO: NAME CANNOT BE EMPTY
+    if (Object.hasOwn(req.body, 'name')) {
+      updatedValues.push(req.body.name);
+      updatedFields.push(`name = $${updatedValues.length}`);
+    }
+
+    if (Object.hasOwn(req.body, 'description')) {
+      updatedValues.push(req.body.description);
+      updatedFields.push(`description = $${updatedValues.length}`);
+    }
+
+    if (updatedFields.length === 0) {
+      throw new Error('At least one field is required');
+    }
+
+    updatedValues.push(userId);
+    updatedValues.push(id);
+
+    const result = await query(
+      `
+      UPDATE libraries
+      SET ${updatedFields.join(', ')}
+      WHERE user_id = $${updatedValues.length - 1} AND id = $${updatedValues.length}
+      RETURNING name, description, user_id, id
+      `,
+      updatedValues
+    );
+
+    const library = result.rows[0];
+
+    return res.status(StatusCodes.OK).json({ library });
+  } catch (error) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error.message });
+  }
 };
 
 export const deleteLibrary = async (req, res) => {
-  return res.send('Delete library');
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const result = await query(
+      `
+      DELETE from libraries
+      WHERE user_id = $1 AND id = $2
+      RETURNING id, user_id, name, description
+      `,
+      [userId, id]
+    );
+
+    const library = result.rows[0];
+
+    return res.status(StatusCodes.OK).json({ library });
+  } catch (error) {
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error.message });
+  }
 };
