@@ -3,12 +3,15 @@ import { body, param } from 'express-validator';
 // Create library validation rules
 export const createLibraryValidation = [
   body('name')
-    .trim()
-    .notEmpty()
+    .exists()
     .withMessage('Name is required')
     .bail()
     .isString()
-    .withMessage('Must provide valid string')
+    .withMessage('Name must be a string')
+    .bail()
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
     .bail()
     .isLength({ min: 1, max: 100 })
     .withMessage(
@@ -17,10 +20,10 @@ export const createLibraryValidation = [
 
   body('description')
     .optional()
-    .trim()
     .isString()
-    .withMessage('Must provide valid string')
+    .withMessage('Description must be a string')
     .bail()
+    .trim()
     .isLength({ max: 1000 })
     .withMessage('Description must be less than 1000 characters'),
 ];
@@ -46,7 +49,7 @@ export const updateLibraryValidation = [
     .isInt({ min: 1 })
     .withMessage('Must be a valid positive integer'),
 
-  body().custom((value, { req }) => {
+  body().custom((__, { req }) => {
     const hasName = Object.hasOwn(req.body, 'name');
     const hasDescription = Object.hasOwn(req.body, 'description');
 
@@ -59,22 +62,22 @@ export const updateLibraryValidation = [
 
   body('name')
     .optional()
+    .isString()
+    .withMessage('Name must be a string')
+    .bail()
     .trim()
     .notEmpty()
     .withMessage('Name must not be empty')
-    .bail()
-    .isString()
-    .withMessage('Must provide valid string')
     .bail()
     .isLength({ max: 100 })
     .withMessage('Name must be less than 100 characters'),
 
   body('description')
     .optional()
-    .trim()
     .isString()
-    .withMessage('Must provide valid string')
+    .withMessage('Description must be a string')
     .bail()
+    .trim()
     .isLength({ max: 1000 })
     .withMessage('Description must be less than 1000 characters'),
 ];

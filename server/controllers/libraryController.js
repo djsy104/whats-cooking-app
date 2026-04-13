@@ -6,8 +6,6 @@ export const createLibrary = async (req, res) => {
     const { name, description } = req.body;
     const userId = req.user.userId;
 
-    if (!name) throw new Error('Name is required');
-
     const result = await query(
       `
       INSERT INTO libraries (user_id, name, description)
@@ -62,6 +60,11 @@ export const getSingleLibrary = async (req, res) => {
     );
 
     const library = result.rows[0];
+    if (!library) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Library not found' });
+    }
 
     return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
@@ -78,7 +81,6 @@ export const updateLibrary = async (req, res) => {
     const updatedFields = [];
     const updatedValues = [];
 
-    // TODO: NAME CANNOT BE EMPTY
     if (Object.hasOwn(req.body, 'name')) {
       updatedValues.push(req.body.name);
       updatedFields.push(`name = $${updatedValues.length}`);
@@ -87,10 +89,6 @@ export const updateLibrary = async (req, res) => {
     if (Object.hasOwn(req.body, 'description')) {
       updatedValues.push(req.body.description);
       updatedFields.push(`description = $${updatedValues.length}`);
-    }
-
-    if (updatedFields.length === 0) {
-      throw new Error('At least one field is required');
     }
 
     updatedValues.push(userId);
@@ -107,6 +105,11 @@ export const updateLibrary = async (req, res) => {
     );
 
     const library = result.rows[0];
+    if (!library) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Library not found' });
+    }
 
     return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
@@ -131,6 +134,11 @@ export const deleteLibrary = async (req, res) => {
     );
 
     const library = result.rows[0];
+    if (!library) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Library not found' });
+    }
 
     return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
