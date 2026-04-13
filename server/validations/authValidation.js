@@ -17,6 +17,7 @@ export const registerValidation = [
     ),
 
   body('email')
+    .trim()
     .notEmpty()
     .withMessage('Email is required')
     .bail()
@@ -39,6 +40,7 @@ export const registerValidation = [
     }),
 
   body('password')
+    .trim()
     .notEmpty()
     .withMessage('Password is required')
     .bail()
@@ -49,6 +51,7 @@ export const registerValidation = [
 // Login validation rules
 export const loginValidation = [
   body('email')
+    .trim()
     .notEmpty()
     .withMessage('Email is required')
     .bail()
@@ -58,5 +61,5 @@ export const loginValidation = [
     .trim()
     .toLowerCase(),
 
-  body('password').notEmpty().withMessage('Password is required'),
+  body('password').trim().notEmpty().withMessage('Password is required'),
 ];
