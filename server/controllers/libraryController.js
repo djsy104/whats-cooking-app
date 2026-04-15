@@ -1,7 +1,9 @@
 import { query } from '../config/db.js';
 import { StatusCodes } from 'http-status-codes';
+import NotFoundError from '../errors/NotFoundError.js';
+import InternalServerError from '../errors/InternalServerError.js';
 
-export const createLibrary = async (req, res) => {
+export const createLibrary = async (req, res, next) => {
   try {
     const { name, description } = req.body;
     const userId = req.user.userId;
@@ -19,13 +21,11 @@ export const createLibrary = async (req, res) => {
 
     return res.status(StatusCodes.CREATED).json({ library });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    return next(new InternalServerError('Unable to create library'));
   }
 };
 
-export const getLibraries = async (req, res) => {
+export const getLibraries = async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
@@ -40,13 +40,11 @@ export const getLibraries = async (req, res) => {
 
     return res.status(StatusCodes.OK).json({ libraries: result.rows });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    return next(new InternalServerError('Unable to fetch libraries'));
   }
 };
 
-export const getSingleLibrary = async (req, res) => {
+export const getSingleLibrary = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
@@ -61,20 +59,20 @@ export const getSingleLibrary = async (req, res) => {
 
     const library = result.rows[0];
     if (!library) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Library not found' });
+      throw new NotFoundError('Library not found');
     }
 
     return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    if (error instanceof NotFoundError) {
+      return next(error);
+    }
+
+    return next(new InternalServerError('Unable to fetch library'));
   }
 };
 
-export const updateLibrary = async (req, res) => {
+export const updateLibrary = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
@@ -106,20 +104,20 @@ export const updateLibrary = async (req, res) => {
 
     const library = result.rows[0];
     if (!library) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Library not found' });
+      throw new NotFoundError('Library not found');
     }
 
     return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    if (error instanceof NotFoundError) {
+      return next(error);
+    }
+
+    return next(new InternalServerError('Unable to update library'));
   }
 };
 
-export const deleteLibrary = async (req, res) => {
+export const deleteLibrary = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
@@ -135,15 +133,15 @@ export const deleteLibrary = async (req, res) => {
 
     const library = result.rows[0];
     if (!library) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Library not found' });
+      throw new NotFoundError('Library not found');
     }
 
     return res.status(StatusCodes.OK).json({ library });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    if (error instanceof NotFoundError) {
+      return next(error);
+    }
+
+    return next(new InternalServerError('Unable to delete library'));
   }
 };

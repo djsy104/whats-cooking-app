@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { StatusCodes } from 'http-status-codes';
+import UnauthorizedError from '../errors/UnauthorizedError.js';
 
 export const authenticateUser = (req, res, next) => {
   const authHeader = req.header('Authorization');
@@ -8,10 +8,9 @@ export const authenticateUser = (req, res, next) => {
       ? authHeader.split(' ')[1]
       : null;
 
-  if (!bearerToken)
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ error: 'No token provided' });
+  if (!bearerToken) {
+    return next(new UnauthorizedError('No token provided'));
+  }
 
   try {
     const verified = jwt.verify(bearerToken, process.env.JWT_SECRET);
@@ -20,8 +19,6 @@ export const authenticateUser = (req, res, next) => {
   } catch (err) {
     console.log('JWT Error: ', err.message);
 
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ error: 'Invalid token' });
+    return next(new UnauthorizedError('Invalid token'));
   }
 };

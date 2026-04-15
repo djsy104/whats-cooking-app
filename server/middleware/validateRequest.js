@@ -1,25 +1,26 @@
 import { validationResult } from 'express-validator';
-import { StatusCodes } from 'http-status-codes';
+import BadRequestError from '../errors/BadRequestError.js';
+import ConflictError from '../errors/ConflictError.js';
 
 export default function validateRequest(req, res, next) {
-  // Collect validation errors from express-validator
   const errors = validationResult(req);
 
-  // If errors exist, handle them
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map((err) => ({
       field: err.path,
       message: err.msg,
     }));
 
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      errors: {
-        message: 'Validation failed!',
-        formattedErrors,
-      },
-    });
+    const hasConflictError = formattedErrors.some(
+      (error) => error.message === 'Email already registered'
+    );
+
+    if (hasConflictError) {
+      return next(new ConflictError('Email already registered', formattedErrors));
+    }
+
+    return next(new BadRequestError('Validation failed', formattedErrors));
   }
 
-  // If no validation errors, continue to controller
   next();
 }

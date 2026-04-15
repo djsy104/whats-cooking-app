@@ -4,12 +4,15 @@ import { query } from '../config/db.js';
 // Register validation rules
 export const registerValidation = [
   body('name')
-    .trim()
-    .notEmpty()
+    .exists()
     .withMessage('Name is required')
     .bail()
     .isString()
-    .withMessage('Must provide valid string')
+    .withMessage('Name must be a string')
+    .bail()
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
     .bail()
     .isLength({ max: 100 })
     .withMessage(
@@ -17,14 +20,19 @@ export const registerValidation = [
     ),
 
   body('email')
+    .exists()
+    .withMessage('Email is required')
+    .bail()
+    .isString()
+    .withMessage('Email must be a string')
+    .bail()
     .trim()
     .notEmpty()
     .withMessage('Email is required')
     .bail()
     .isEmail()
-    .withMessage('Must provide a valid email')
+    .withMessage('Email must be a valid email')
     .bail()
-    .trim()
     .toLowerCase()
     .custom(async (value) => {
       const result = await query(
@@ -33,13 +41,19 @@ export const registerValidation = [
       );
 
       if (result.rows.length > 0) {
-        throw new Error('Email already registered!');
+        throw new Error('Email already registered');
       }
 
       return true;
     }),
 
   body('password')
+    .exists()
+    .withMessage('Password is required')
+    .bail()
+    .isString()
+    .withMessage('Password must be a string')
+    .bail()
     .trim()
     .notEmpty()
     .withMessage('Password is required')
@@ -51,15 +65,29 @@ export const registerValidation = [
 // Login validation rules
 export const loginValidation = [
   body('email')
+    .exists()
+    .withMessage('Email is required')
+    .bail()
+    .isString()
+    .withMessage('Email must be a string')
+    .bail()
     .trim()
     .notEmpty()
     .withMessage('Email is required')
     .bail()
     .isEmail()
-    .withMessage('Must provide a valid email')
+    .withMessage('Email must be a valid email')
     .bail()
-    .trim()
     .toLowerCase(),
 
-  body('password').trim().notEmpty().withMessage('Password is required'),
+  body('password')
+    .exists()
+    .withMessage('Password is required')
+    .bail()
+    .isString()
+    .withMessage('Password must be a string')
+    .bail()
+    .trim()
+    .notEmpty()
+    .withMessage('Password is required'),
 ];

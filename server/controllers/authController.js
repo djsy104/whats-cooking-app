@@ -2,8 +2,11 @@ import { query } from '../config/db.js';
 import { StatusCodes } from 'http-status-codes';
 import { hashPassword, comparePasswords } from '../utils/password.js';
 import { createJWT } from '../utils/token.js';
+import UnauthorizedError from '../errors/UnauthorizedError.js';
+import NotFoundError from '../errors/NotFoundError.js';
+import InternalServerError from '../errors/InternalServerError.js';
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
     const hashedPassword = await hashPassword(password);
@@ -21,13 +24,11 @@ export const register = async (req, res) => {
 
     return res.status(StatusCodes.CREATED).json({ user, token });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    return next(new InternalServerError('Unable to register user'));
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -42,10 +43,14 @@ export const login = async (req, res) => {
     );
 
     const user = result.rows[0];
-    if (!user) throw new Error('Invalid credentials!');
+    if (!user) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
 
     const isMatch = await comparePasswords(password, user.password_hash);
-    if (!isMatch) throw new Error('Incorrect password!');
+    if (!isMatch) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
 
     const safeUser = {
       id: user.id,
@@ -55,14 +60,16 @@ export const login = async (req, res) => {
     const token = createJWT({ userId: user.id, name: user.name });
     return res.status(StatusCodes.OK).json({ user: safeUser, token });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    if (error instanceof UnauthorizedError) {
+      return next(error);
+    }
+
+    return next(new InternalServerError('Unable to log in user'));
   }
 };
 
 // Returns the current user
-export const getUser = async (req, res) => {
+export const getUser = async (req, res, next) => {
   try {
     const result = await query(
       `
@@ -75,15 +82,15 @@ export const getUser = async (req, res) => {
 
     const user = result.rows[0];
     if (!user) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'User not found' });
+      throw new NotFoundError('User not found');
     }
 
     return res.status(StatusCodes.OK).json({ user });
   } catch (error) {
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    if (error instanceof NotFoundError) {
+      return next(error);
+    }
+
+    return next(new InternalServerError('Unable to fetch user'));
   }
 };
