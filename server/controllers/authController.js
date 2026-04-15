@@ -5,6 +5,7 @@ import { createJWT } from '../utils/token.js';
 import UnauthorizedError from '../errors/UnauthorizedError.js';
 import NotFoundError from '../errors/NotFoundError.js';
 import InternalServerError from '../errors/InternalServerError.js';
+import ConflictError from '../errors/ConflictError.js';
 
 export const register = async (req, res, next) => {
   try {
@@ -24,6 +25,10 @@ export const register = async (req, res, next) => {
 
     return res.status(StatusCodes.CREATED).json({ user, token });
   } catch (error) {
+    if (error.code === '23505') {
+      return next(new ConflictError('Email already registered'));
+    }
+
     return next(new InternalServerError('Unable to register user'));
   }
 };

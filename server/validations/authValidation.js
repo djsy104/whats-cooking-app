@@ -1,5 +1,4 @@
 import { body } from 'express-validator';
-import { query } from '../config/db.js';
 
 // Register validation rules
 export const registerValidation = [
@@ -33,19 +32,7 @@ export const registerValidation = [
     .isEmail()
     .withMessage('Email must be a valid email')
     .bail()
-    .toLowerCase()
-    .custom(async (value) => {
-      const result = await query(
-        'SELECT id FROM users WHERE email = $1 LIMIT 1',
-        [value]
-      );
-
-      if (result.rows.length > 0) {
-        throw new Error('Email already registered');
-      }
-
-      return true;
-    }),
+    .toLowerCase(),
 
   body('password')
     .exists()

@@ -2,11 +2,13 @@ import { query } from '../config/db.js';
 import { StatusCodes } from 'http-status-codes';
 import NotFoundError from '../errors/NotFoundError.js';
 import InternalServerError from '../errors/InternalServerError.js';
+import ConflictError from '../errors/ConflictError.js';
 
 export const createLibrary = async (req, res, next) => {
   try {
     const { name, description } = req.body;
     const userId = req.user.userId;
+    const normalizedDescription = description ?? null;
 
     const result = await query(
       `
@@ -14,13 +16,17 @@ export const createLibrary = async (req, res, next) => {
       VALUES ($1, $2, $3)
       RETURNING id, user_id, name, description
       `,
-      [userId, name, description]
+      [userId, name, normalizedDescription]
     );
 
     const library = result.rows[0];
 
     return res.status(StatusCodes.CREATED).json({ library });
   } catch (error) {
+    if (error.code === '23505') {
+      return next(new ConflictError('Library name already exists'));
+    }
+
     return next(new InternalServerError('Unable to create library'));
   }
 };
@@ -111,6 +117,10 @@ export const updateLibrary = async (req, res, next) => {
   } catch (error) {
     if (error instanceof NotFoundError) {
       return next(error);
+    }
+
+    if (error.code === '23505') {
+      return next(new ConflictError('Library name already exists'));
     }
 
     return next(new InternalServerError('Unable to update library'));

@@ -20,11 +20,18 @@ export const createLibraryValidation = [
 
   body('description')
     .optional()
-    .isString()
-    .withMessage('Description must be a string')
+    .custom((value) => value === null || typeof value === 'string')
+    .withMessage('Description must be a string or null')
     .bail()
-    .trim()
-    .isLength({ max: 1000 })
+    .customSanitizer((value) => {
+      if (value === null) {
+        return null;
+      }
+
+      const trimmedValue = value.trim();
+      return trimmedValue === '' ? null : trimmedValue;
+    })
+    .custom((value) => value === null || value.length <= 1000)
     .withMessage('Description must be less than 1000 characters'),
 ];
 
@@ -74,11 +81,18 @@ export const updateLibraryValidation = [
 
   body('description')
     .optional()
-    .isString()
-    .withMessage('Description must be a string')
+    .custom((value) => value === null || typeof value === 'string')
+    .withMessage('Description must be a string or null')
     .bail()
-    .trim()
-    .isLength({ max: 1000 })
+    .customSanitizer((value) => {
+      if (value === null) {
+        return null;
+      }
+
+      const trimmedValue = value.trim();
+      return trimmedValue === '' ? null : trimmedValue;
+    })
+    .custom((value) => value === null || value.length <= 1000)
     .withMessage('Description must be less than 1000 characters'),
 ];
 
