@@ -10,6 +10,18 @@ export default [
   },
   js.configs.recommended,
   {
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_'
+        }
+      ]
+    }
+  },
+  {
     files: ['client/**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 'latest',

@@ -45,7 +45,7 @@ export const getLibraries = async (req, res, next) => {
     );
 
     return res.status(StatusCodes.OK).json({ libraries: result.rows });
-  } catch (error) {
+  } catch (_error) {
     return next(new InternalServerError('Unable to fetch libraries'));
   }
 };
