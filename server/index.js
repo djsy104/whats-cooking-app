@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/authRouter.js';
 import libraryRouter from './routes/libraryRouter.js';
+import ingredientRouter from './routes/ingredientRouter.js';
 import { authenticateUser } from './middleware/authentication.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -35,6 +36,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/libraries', authenticateUser, libraryRouter);
+app.use('/api/ingredients', authenticateUser, ingredientRouter);
 app.use(errorHandler);
 
 app.listen(port, () => {
